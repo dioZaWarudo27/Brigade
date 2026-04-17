@@ -1393,11 +1393,20 @@ app.post('/api/savefood', limiter,checkAuth, async(req: Request, res: Response)=
 app.get('/api/getfood',limiter, checkAuth, async (req: Request, res: Response) => {
     const userid = req.session.UserId;
     const { date, search } = req.query;
+    const cacheKey = `food_logs:${userid}:*`;
 
     try {
         let query;
         let params;
 
+        const cachedKey = await redisClient.get(cacheKey)
+        if(cachedKey){
+            try{
+                return res.json(JSON.parse(cachedKey as string));
+            }catch(e){
+                await redisClient.del(cacheKey)
+            }
+        }
         if (search) {
             query = `SELECT * FROM food_logs WHERE user_id = $1 AND food_name ILIKE $2 ORDER BY created_at DESC LIMIT 50`;
             params = [userid, `%${search}%`];
@@ -1419,6 +1428,7 @@ app.get('/api/getfood',limiter, checkAuth, async (req: Request, res: Response) =
 
 app.post('/api/food/log', limiter, checkAuth, async(req: Request, res: Response) =>{
     const parsed = foodLogSchema.safeParse(req.body)
+    const userid = req.session.UserId
     if(!parsed.success){
         return res.status(400).json({message: "error", error: parsed.error.flatten().fieldErrors})
     }
@@ -1432,6 +1442,10 @@ app.post('/api/food/log', limiter, checkAuth, async(req: Request, res: Response)
         `
         const values = [userId, food_name, calories, protein, carbs, fat, serving_description]
         const results = await pool.query(query, values)
+        const keys = await redisClient.keys(`food_logs:${userid}:*`)
+        if(keys.length > 0){
+            await redisClient.del(keys)
+        }
         res.status(200).json(results.rows[0])
     }catch(err){
         console.error('Error', err)
