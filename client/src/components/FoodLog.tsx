@@ -50,12 +50,6 @@ const FoodLog: React.FC = () => {
     }
   };
 
-  // tab switching
-  useEffect(() => {
-    if (activeTab === 'recent') {
-      performRecentSearch(recentQuery);
-    }
-  }, [activeTab, recentQuery]);
 
   const handleSelectFood = (food: any) => {
     setSelectedFood(food);
@@ -93,16 +87,9 @@ const FoodLog: React.FC = () => {
 
   //debounce
   useEffect(() => {
-    if (activeTab !== 'search' || query.trim().length < 2) {
-      setFoodSearch([]);
-      return;
-    }
-    const timeoutId = setTimeout(() => performNinjaSearch(query), 1000);
-    return () => clearTimeout(timeoutId);
-  }, [query, activeTab]);
-
-  useEffect(() => {
     if (activeTab !== 'recent') return;
+    if (!recentQuery && recentFoods.length > 0) return; 
+
     const timeoutId = setTimeout(() => performRecentSearch(recentQuery), 500);
     return () => clearTimeout(timeoutId);
   }, [recentQuery, activeTab]);
