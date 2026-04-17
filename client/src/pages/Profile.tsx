@@ -32,9 +32,11 @@ const Profile = ({ onLogout }: { onLogout: () => void }) => {
     bodyfat: ''
   });
   const [loading, setLoading] = useState(true);
+  const [isInitialLoading, setInitialLoading] = useState(true)
 
   useEffect(() => {
     const loadProfileData = async () => {
+      if(isInitialLoading) setLoading(true)
       try {
         const data = await getProfile();
         const initialData = {
@@ -68,6 +70,7 @@ const Profile = ({ onLogout }: { onLogout: () => void }) => {
         console.error("Failed to load profile:", err);
       } finally {
         setLoading(false);
+        setInitialLoading(false)
       }
     };
     loadProfileData();
