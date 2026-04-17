@@ -1390,23 +1390,24 @@ app.post('/api/savefood', limiter,checkAuth, async(req: Request, res: Response)=
 
 //for food section
 // GET /api/getfood?date=... or ?search=...
-app.get('/api/getfood',limiter, checkAuth, async (req: Request, res: Response) => {
+app.get('/api/getfood', limiter, checkAuth, async (req: Request, res: Response) => {
     const userid = req.session.UserId;
     const { date, search } = req.query;
     const cacheKey = `food_logs:${userid}:${date || 'recent'}:${search || ''}`;
 
     try {
+        const cachedKey = await redisClient.get(cacheKey);
+        if (cachedKey) {
+            try {
+                return res.json(JSON.parse(cachedKey as string));
+            } catch(e) {
+                await redisClient.del(cacheKey);
+            }
+        }
+
         let query;
         let params;
 
-        const cachedKey = await redisClient.get(cacheKey)
-        if(cachedKey){
-            try{
-                return res.json(JSON.parse(cachedKey as string));
-            }catch(e){
-                await redisClient.del(cacheKey)
-            }
-        }
         if (search) {
             query = `SELECT * FROM food_logs WHERE user_id = $1 AND food_name ILIKE $2 ORDER BY created_at DESC LIMIT 50`;
             params = [userid, `%${search}%`];
@@ -1419,6 +1420,10 @@ app.get('/api/getfood',limiter, checkAuth, async (req: Request, res: Response) =
         }
 
         const result = await pool.query(query, params);
+
+        
+        await redisClient.set(cacheKey, JSON.stringify(result.rows), { EX: 300 });
+
         res.json(result.rows);
     } catch (err) {
         console.error('Fetch Food Error:', err);
