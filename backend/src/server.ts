@@ -1393,7 +1393,7 @@ app.post('/api/savefood', limiter,checkAuth, async(req: Request, res: Response)=
 app.get('/api/getfood',limiter, checkAuth, async (req: Request, res: Response) => {
     const userid = req.session.UserId;
     const { date, search } = req.query;
-    const cacheKey = `food_logs:${userid}:*`;
+    const cacheKey = `food_logs:${userid}:${date || 'recent'}:${search || ''}`;
 
     try {
         let query;
