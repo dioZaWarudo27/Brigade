@@ -1428,7 +1428,6 @@ app.get('/api/getfood',limiter, checkAuth, async (req: Request, res: Response) =
 
 app.post('/api/food/log', limiter, checkAuth, async(req: Request, res: Response) =>{
     const parsed = foodLogSchema.safeParse(req.body)
-    const userid = req.session.UserId
     if(!parsed.success){
         return res.status(400).json({message: "error", error: parsed.error.flatten().fieldErrors})
     }
@@ -1442,7 +1441,7 @@ app.post('/api/food/log', limiter, checkAuth, async(req: Request, res: Response)
         `
         const values = [userId, food_name, calories, protein, carbs, fat, serving_description]
         const results = await pool.query(query, values)
-        const keys = await redisClient.keys(`food_logs:${userid}:*`)
+        const keys = await redisClient.keys(`food_logs:${userId}:*`)
         if(keys.length > 0){
             await redisClient.del(keys)
         }
