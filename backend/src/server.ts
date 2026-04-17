@@ -485,10 +485,21 @@ app.get('/api/user/profile', checkAuth, async (req: Request, res: Response) => {
     const cacheKey = `user:${userid}:profile`;
     let cacheData = null
     try {
+        // if(redisClient.isOpen && redisClient.isReady){
+        //     cacheData = await redisClient.get(cacheKey);
+        // }
+        // if (cacheData) return res.json(JSON.parse(cacheData));
         if(redisClient.isOpen && redisClient.isReady){
             cacheData = await redisClient.get(cacheKey);
         }
-        if (cacheData) return res.json(JSON.parse(cacheData));
+
+        if (cacheData) {
+            console.log(`✅ CACHE HIT for user ${userid}`); // Add this!
+            return res.json(JSON.parse(cacheData));
+        }
+
+        console.log(`❌ CACHE MISS for user ${userid} - Hitting Postgres!`); // Add this!
+
 
         const query = `
             SELECT u.id, u.email, u.username, u.weekly_goal,
