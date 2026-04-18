@@ -500,9 +500,21 @@ app.get('/api/auth/google', passport.authenticate('google',{scope: ['profile', '
 app.get('/api/auth/google/callback',
     passport.authenticate('google', { failureRedirect: '/login' }),
     (req, res) => {
-        req.session.UserId = (req.user as any).id;
+        const user = req.user as any;
+        req.session.UserId = user.id;
         req.session.isLoggedIn = true;
-        res.redirect(`${process.env.FRONTEND_URL}/`);
+        
+       
+        const redirectUrl = user.isNewUser 
+            ? `${process.env.FRONTEND_URL}/profile?onboarding=true` 
+            : `${process.env.FRONTEND_URL}/`;
+            
+        console.log(`[GOOGLE AUTH] Redirecting User ${user.id} to: ${redirectUrl}`);
+        
+        req.session.save((err) => {
+            if (err) console.error("[SESSION SAVE ERROR]:", err);
+            res.redirect(redirectUrl);
+        });
     }
 );
 
