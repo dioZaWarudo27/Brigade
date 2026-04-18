@@ -25,8 +25,49 @@ import {RedisStore} from 'connect-redis';
 import { postSchema } from '../schemaszod/post.js';
 import { chatMessageSchema, commentSchema, maxAiChar } from '../schemaszod/social.js';
 import { loginSchema, registerSchema } from '../schemaszod/user_account_related.js';
+import passport from 'passport';
+import {Strategy as GoogleStrategy} from 'passport-google-oauth20'
 import {z} from 'zod'
 dotenv.config();
+
+passport.use(new GoogleStrategy({
+    clientID: process.env.GOOGLE_CLIENT_ID!,
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+    callbackURL: "/api/auth/google/callback",
+    proxy: true 
+  },
+  async (accessToken, refreshToken, profile, done) => {
+    const email = profile.emails?.[0]?.value;
+    const googleId = profile.id;
+
+    try {
+      let user = await pool.query(
+        'SELECT * FROM users WHERE google_id = $1 OR email = $2',
+        [googleId, email]
+      );
+
+      if (user.rows.length > 0) {
+        
+        if (!user.rows[0].google_id) {
+          await pool.query(
+            'UPDATE users SET google_id = $1 WHERE email = $2',
+            [googleId, email]
+          );
+        }
+        return done(null, user.rows[0]);
+      }
+
+      const newUser = await pool.query(
+        'INSERT INTO users (email, google_id, username) VALUES ($1, $2, $3) RETURNING *',
+        [email, googleId, profile.displayName]
+      );
+      return done(null, newUser.rows[0]);
+
+    } catch (err) {
+      return done(err);
+    }
+  }
+));
 
 // 1. Configure Cloudinary
 cloudinary.config({
@@ -431,6 +472,16 @@ app.post('/api/login', limiter, async (req: Request, res: Response) => {
         res.status(500).json({ error: "Server Error" });
     }
 });
+
+app.get('/api/auth/google', passport.authenticate('google',{scope: ['profile', 'email']}))
+app.get('/api/auth/google/callback',
+    passport.authenticate('google', { failureRedirect: '/login' }),
+    (req, res) => {
+        req.session.UserId = (req.user as any).id;
+        req.session.isLoggedIn = true;
+        res.redirect(`${process.env.FRONTEND_URL}/dashboard`);
+    }
+);
 
 app.post('/api/register', limiter, async (req: Request, res: Response) => {
     const parsed = registerSchema.safeParse(req.body);
