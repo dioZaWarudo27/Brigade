@@ -404,6 +404,8 @@ if (redisClient.isOpen && redisClient.isReady) {
 }
 
 app.use(session(sessionConfig));
+app.use(passport.initialize());
+app.use(passport.session());
 
 // --- AUTH ROUTES ---
 
