@@ -30,6 +30,19 @@ import {Strategy as GoogleStrategy} from 'passport-google-oauth20'
 import {z} from 'zod'
 dotenv.config();
 
+passport.serializeUser((user: any, done) => {
+    done(null, user.id);
+}); 
+
+passport.deserializeUser(async (id: number, done) => {
+    try {
+        const result = await pool.query('SELECT * FROM users WHERE id = $1', [id]);
+        done(null, result.rows[0]);
+    } catch (err) {
+        done(err);
+    }
+});
+
 passport.use(new GoogleStrategy({
     clientID: process.env.GOOGLE_CLIENT_ID!,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
