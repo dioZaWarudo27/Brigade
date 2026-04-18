@@ -494,7 +494,7 @@ app.get('/api/auth/google/callback',
     (req, res) => {
         req.session.UserId = (req.user as any).id;
         req.session.isLoggedIn = true;
-        res.redirect(`${process.env.FRONTEND_URL}/dashboard`);
+        res.redirect(`${process.env.FRONTEND_URL}/`);
     }
 );
 
