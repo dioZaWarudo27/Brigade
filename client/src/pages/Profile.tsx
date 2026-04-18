@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { getProfile, updateProfile } from '../api';
-import { Layout } from './Dashboard'; // Reusing the Layout from Dashboard for consistency
+import { Layout } from './Dashboard'; 
 import { patchTdee } from '../api';
 import toast from 'react-hot-toast';
+import Onboarding from '../components/Onboarding';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 const Profile = ({ onLogout }: { onLogout: () => void }) => {
   const [profile, setProfile] = useState({
@@ -33,48 +35,65 @@ const Profile = ({ onLogout }: { onLogout: () => void }) => {
   });
   const [loading, setLoading] = useState(true);
   const [isInitialLoading, setInitialLoading] = useState(true)
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const loadProfileData = async () => {
+    if(isInitialLoading) setLoading(true)
+    try {
+      const data = await getProfile();
+      const initialData = {
+        username: data.username || '',
+        email: data.email || '',
+        gender: data.gender || '',
+        age: data.age?.toString() || '',
+        weight: data.weight?.toString() || '',
+        height: data.height?.toString() || '',
+        activity_level: data.activity_level || '',
+        goal: data.goal || '',
+        bodyfat: data.bodyfat?.toString() || '',
+        tdee: data.tdee || 0,
+        target_calories: data.target_calories || 0,
+        total_workouts: data.total_workouts || 0,
+        total_volume: data.total_volume || 0,
+        streak: data.streak || 0
+      };
+      setProfile(initialData);
+      setFormData({
+        username: initialData.username,
+        gender: initialData.gender,
+        age: initialData.age,
+        weight: initialData.weight,
+        height: initialData.height,
+        activity_level: initialData.activity_level,
+        goal: initialData.goal,
+        bodyfat: initialData.bodyfat
+      });
+    } catch (err) {
+      console.error("Failed to load profile:", err);
+    } finally {
+      setLoading(false);
+      setInitialLoading(false)
+    }
+  };
 
   useEffect(() => {
-    const loadProfileData = async () => {
-      if(isInitialLoading) setLoading(true)
-      try {
-        const data = await getProfile();
-        const initialData = {
-          username: data.username || '',
-          email: data.email || '',
-          gender: data.gender || '',
-          age: data.age?.toString() || '',
-          weight: data.weight?.toString() || '',
-          height: data.height?.toString() || '',
-          activity_level: data.activity_level || '',
-          goal: data.goal || '',
-          bodyfat: data.bodyfat?.toString() || '',
-          tdee: data.tdee || 0,
-          target_calories: data.target_calories || 0,
-          total_workouts: data.total_workouts || 0,
-          total_volume: data.total_volume || 0,
-          streak: data.streak || 0
-        };
-        setProfile(initialData);
-        setFormData({
-          username: initialData.username,
-          gender: initialData.gender,
-          age: initialData.age,
-          weight: initialData.weight,
-          height: initialData.height,
-          activity_level: initialData.activity_level,
-          goal: initialData.goal,
-          bodyfat: initialData.bodyfat
-        });
-      } catch (err) {
-        console.error("Failed to load profile:", err);
-      } finally {
-        setLoading(false);
-        setInitialLoading(false)
-      }
-    };
     loadProfileData();
+    
+    // Check for onboarding flag
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('onboarding') === 'true') {
+        setShowOnboarding(true);
+    }
   }, []);
+
+  const handleOnboardingComplete = () => {
+    setShowOnboarding(false);
+    navigate('/profile', { replace: true }); // Clear URL flag
+    loadProfileData(); // Get the new stats
+    toast.success("Profile setup complete! ✨");
+  };
 
   const handleUpdate = async () => {
     try {
