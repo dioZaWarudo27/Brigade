@@ -134,8 +134,16 @@ const initializeDB = async () => {
                 fatsecret_token TEXT,
                 fatsecret_secret TEXT,
                 weekly_goal INTEGER DEFAULT 0,
+                google_id TEXT UNIQUE,
                 created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
             );
+
+            DO $$ 
+            BEGIN
+                IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='users' AND column_name='google_id') THEN
+                    ALTER TABLE users ADD COLUMN google_id TEXT UNIQUE;
+                END IF;
+            END $$;
 
             CREATE TABLE IF NOT EXISTS user_profiles (
                 id SERIAL PRIMARY KEY,
