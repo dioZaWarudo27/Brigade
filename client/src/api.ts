@@ -451,6 +451,7 @@ export const sendMessage = async (chatId: string, content: string) => {
     
     return await result.json(); // Returns the saved message
 };
+add caching on frontend
 export const getChat = async(chatId: string) =>{
     const result = await fetch(`${BASE_URL}/chats/${chatId}/messages`,{
         method: 'GET',
