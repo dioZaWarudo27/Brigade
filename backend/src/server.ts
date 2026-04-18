@@ -67,14 +67,14 @@ passport.use(new GoogleStrategy({
             [googleId, email]
           );
         }
-        return done(null, user.rows[0]);
+        return done(null, { ...user.rows[0], isNewUser: false });
       }
 
       const newUser = await pool.query(
-        'INSERT INTO users (email, google_id, username) VALUES ($1, $2, $3) RETURNING *',
-        [email, googleId, profile.displayName]
+        'INSERT INTO users (email, google_id, username, password_hash) VALUES ($1, $2, $3, $4) RETURNING *',
+        [email, googleId, profile.displayName, 'oauth_account']
       );
-      return done(null, newUser.rows[0]);
+      return done(null, { ...newUser.rows[0], isNewUser: true });
 
     } catch (err) {
       return done(err);
