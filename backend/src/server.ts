@@ -332,7 +332,6 @@ function calculateTargetCalories(tdee: number, goal: string): number {
 const app = express();
 const httpServer = createServer(app);
 
-// 🛡️ Senior Fix: Log EVERY request immediately
 app.use((req, res, next) => {
     console.log(`[${new Date().toISOString()}] 📥 ${req.method} ${req.url}`);
     next();
@@ -397,7 +396,7 @@ const sessionConfig: session.SessionOptions ={
     resave: false,
     saveUninitialized: false,
     cookie: { 
-        secure: true, 
+        secure: process.env.NODE_ENV === 'production', 
         httpOnly: true, 
         sameSite: 'none', 
         maxAge: 24 * 60 * 60 * 1000 // 1 Day
