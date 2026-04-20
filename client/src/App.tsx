@@ -22,23 +22,34 @@ export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [loading, setLoading] = useState(true);
 
-useEffect(() => {
-    fetch('/api/me', { credentials: 'include' })
-    .then(res => res.json())
-    .then(data => {
-      if (data.isLoggedIn) {
-        setIsLoggedIn(true);
-      } else {
-        setIsLoggedIn(false);
-      }
-    })
-    .catch(() => setIsLoggedIn(false))
-    .finally(() => setLoading(false));
+  useEffect(() => {
+    
+    const params = new URLSearchParams(window.location.search);
+    const userId = params.get('userId');
+
+    if (userId) {
+      setIsLoggedIn(true);
+      setLoading(false);
+      
+      window.history.replaceState({}, '', window.location.pathname);
+      return;
+    }
+
+    fetch(`${import.meta.env.BACKEND_URL}/api/me`, { credentials: 'include' })
+      .then(res => res.json())
+      .then(data => {
+        if (data.isLoggedIn) {
+          setIsLoggedIn(true);
+        } else {
+          setIsLoggedIn(false);
+        }
+      })
+      .catch(() => setIsLoggedIn(false))
+      .finally(() => setLoading(false));
   }, []);
 
   const handleLogin = () => {
     setIsLoggedIn(true);
-    
   };
 
   const handleLogout = async () => {
@@ -47,7 +58,6 @@ useEffect(() => {
       setIsLoggedIn(false);
     } catch (err) {
       console.error("Logout failed:", err);
-      // Still log out on the frontend even if the API call fails
       setIsLoggedIn(false);
     }
   };
@@ -58,9 +68,9 @@ useEffect(() => {
 
   return (
     <>
-      <Toaster 
-        position="top-right" 
-        reverseOrder={false} 
+      <Toaster
+        position="top-right"
+        reverseOrder={false}
         toastOptions={{
           style: {
             background: '#1e293b',
@@ -71,10 +81,9 @@ useEffect(() => {
       />
       <Router>
         <Routes>
-          {/* Pass the handleLogin function to your LoginPage as onLoginSuccess */}
           <Route path="/login" element={<LoginPage onLoginSuccess={handleLogin} />} />
           <Route path="/register" element={<RegisterPage onRegisterSuccess={handleLogin} />} />
-          
+
           {/* Protected Routes */}
           <Route path="/" element={isLoggedIn ? <Dashboard onLogout={handleLogout} /> : <Navigate to="/login" />} />
           <Route path="/profile" element={isLoggedIn ? <Profile onLogout={handleLogout} /> : <Navigate to="/login" />} />
@@ -88,7 +97,7 @@ useEffect(() => {
           <Route path="/log-food" element={isLoggedIn ? <LogFoodPage onLogout={handleLogout} /> : <Navigate to="/login" />} />
           <Route path="/food-history" element={isLoggedIn ? <FoodHistoryPage onLogout={handleLogout} /> : <Navigate to="/login" />} />
           <Route path="/history" element={isLoggedIn ? <History onLogout={handleLogout} /> : <Navigate to="/login" />} />
-          
+
           {/* Fallback */}
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
