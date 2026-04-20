@@ -47,7 +47,7 @@ passport.use(new GoogleStrategy({
     clientID: process.env.GOOGLE_CLIENT_ID!,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
     callbackURL: `${process.env.BACKEND_URL || 'http://localhost:3001'}/api/auth/google/callback`,
-    proxy: true 
+    proxy: true
   },
   async (accessToken, refreshToken, profile, done) => {
     const email = profile.emails?.[0]?.value;
@@ -60,7 +60,6 @@ passport.use(new GoogleStrategy({
       );
 
       if (user.rows.length > 0) {
-        
         if (!user.rows[0].google_id) {
           await pool.query(
             'UPDATE users SET google_id = $1 WHERE email = $2',
@@ -71,8 +70,8 @@ passport.use(new GoogleStrategy({
       }
 
       const newUser = await pool.query(
-        'INSERT INTO users (email, google_id, username, password_hash) VALUES ($1, $2, $3, $4) RETURNING *',
-        [email, googleId, profile.displayName, 'oauth_account']
+        'INSERT INTO users (email, google_id, username) VALUES ($1, $2, $3) RETURNING *',
+        [email, googleId, profile.displayName]
       );
       return done(null, { ...newUser.rows[0], isNewUser: true });
 
@@ -495,21 +494,20 @@ app.post('/api/login', limiter, async (req: Request, res: Response) => {
     }
 });
 
-app.get('/api/auth/google', passport.authenticate('google',{scope: ['profile', 'email']}))
+app.get('/api/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
 app.get('/api/auth/google/callback',
-    passport.authenticate('google', { failureRedirect: '/login' }),
+    passport.authenticate('google', { failureRedirect: `${process.env.FRONTEND_URL}/login` }),
     (req, res) => {
         const user = req.user as any;
         req.session.UserId = user.id;
         req.session.isLoggedIn = true;
-        
-       
-        const redirectUrl = user.isNewUser 
-            ? `${process.env.FRONTEND_URL}/profile?onboarding=true` 
-            : `${process.env.FRONTEND_URL}/`;
-            
+
+        const redirectUrl = user.isNewUser
+            ? `${process.env.FRONTEND_URL}/profile?onboarding=true&userId=${user.id}`
+            : `${process.env.FRONTEND_URL}/?userId=${user.id}`;
+
         console.log(`[GOOGLE AUTH] Redirecting User ${user.id} to: ${redirectUrl}`);
-        
+
         req.session.save((err) => {
             if (err) console.error("[SESSION SAVE ERROR]:", err);
             res.redirect(redirectUrl);
