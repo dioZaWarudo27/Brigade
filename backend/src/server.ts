@@ -362,7 +362,7 @@ const io = new Server(httpServer, {
 app.set('io', io);
 
 if (process.env.NODE_ENV === 'production') {
-    app.set('trust proxy', true);
+    app.set('trust proxy', 1);
 }
 
 io.on('connection', (socket) => {
@@ -385,8 +385,10 @@ const limiter = rateLimit({
     limit: 100,
     message: {error: 'U trynna break our shit?'},
     standardHeaders: 'draft-7',
-    legacyHeaders: true
+    legacyHeaders: true,
+    validate: { trustProxy: false }
 })
+
 
 const redisStore = new RedisStore({
     client: redisClient,

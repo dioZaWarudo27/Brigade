@@ -17,7 +17,7 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onRegisterSuccess }) => {
         confirmPassword: ''
     });
 
-    const handleRegister = async (e: React.FormEvent<HTMLFormElement>) => {
+    const handleRegister = async (e: React.SubmitEvent<HTMLFormElement>) => {
         e.preventDefault();
         const { email, password, confirmPassword } = formData;
 
