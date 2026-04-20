@@ -356,12 +356,10 @@ const io = new Server(httpServer, {
 
 app.set('io', io);
 
-// Trust Proxy (Required for Render/Vercel load balancers)
 if (process.env.NODE_ENV === 'production') {
-    app.set('trust proxy', 1);
+    app.set('trust proxy', true);
 }
 
-// --- SOCKET.IO EVENT HANDLERS ---
 io.on('connection', (socket) => {
     console.log(`[SOCKET] User connected: ${socket.id}`);
 
