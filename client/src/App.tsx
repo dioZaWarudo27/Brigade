@@ -14,28 +14,30 @@ import NotificationsPage from './pages/NotificationsPage';
 import PostPage from './pages/PostPage';
 import ChatPage from './pages/ChatPage';
 import AICoach from './pages/AICoach';
+import Onboarding from './components/Onboarding';
 import { logout } from './api';
 import toast, { Toaster } from 'react-hot-toast';
 import './index.css';
 
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isOnboarding, setIsOnboarding] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    
     const params = new URLSearchParams(window.location.search);
     const userId = params.get('userId');
+    const onboarding = params.get('onboarding');
 
     if (userId) {
       setIsLoggedIn(true);
+      if (onboarding === 'true') setIsOnboarding(true);
       setLoading(false);
-      
       window.history.replaceState({}, '', window.location.pathname);
       return;
     }
 
-    fetch(`${import.meta.env.BACKEND_URL}/api/me`, { credentials: 'include' })
+    fetch(`${import.meta.env.VITE_BACKEND_URL}/api/me`, { credentials: 'include' })
       .then(res => res.json())
       .then(data => {
         if (data.isLoggedIn) {
@@ -62,6 +64,10 @@ export default function App() {
     }
   };
 
+  const handleOnboardingComplete = () => {
+    setIsOnboarding(false);
+  };
+
   if (loading) {
     return <div className="loading-screen">Loading...</div>;
   }
@@ -86,7 +92,18 @@ export default function App() {
 
           {/* Protected Routes */}
           <Route path="/" element={isLoggedIn ? <Dashboard onLogout={handleLogout} /> : <Navigate to="/login" />} />
-          <Route path="/profile" element={isLoggedIn ? <Profile onLogout={handleLogout} /> : <Navigate to="/login" />} />
+
+          <Route
+            path="/profile"
+            element={
+              isLoggedIn
+                ? isOnboarding
+                  ? <Onboarding onComplete={handleOnboardingComplete} />
+                  : <Profile onLogout={handleLogout} />
+                : <Navigate to="/login" />
+            }
+          />
+
           <Route path="/feed" element={isLoggedIn ? <Feed onLogout={handleLogout} /> : <Navigate to="/login" />} />
           <Route path="/notifications" element={isLoggedIn ? <NotificationsPage onLogout={handleLogout} /> : <Navigate to="/login" />} />
           <Route path="/chat" element={isLoggedIn ? <ChatPage onLogout={handleLogout} /> : <Navigate to="/login" />} />

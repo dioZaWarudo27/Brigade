@@ -58,6 +58,9 @@ passport.use(new GoogleStrategy({
         'SELECT * FROM users WHERE google_id = $1 OR email = $2',
         [googleId, email]
       );
+      if(user.rows.length === 0){
+        return done(null, false);
+      }
 
       if (user.rows.length > 0) {
         if (!user.rows[0].google_id) {
