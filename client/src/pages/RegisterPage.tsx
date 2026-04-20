@@ -45,7 +45,7 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onRegisterSuccess }) => {
 
     const handleOnboardingComplete = (onboardingData: any) => {
         console.log("Saving user profile info:", onboardingData);
-        alert('Account setup complete! ✨');
+        toast.success('Account setup complete! ✨');
         onRegisterSuccess();
         navigate('/');
     };

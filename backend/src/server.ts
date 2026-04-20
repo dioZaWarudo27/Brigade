@@ -237,8 +237,10 @@ interface AuthRequestBody {
 
 const checkAuth = (req: Request, res: Response, next: NextFunction) => {
     if (req.session && req.session.UserId) {
+        console.log(`[AUTH SUCCESS] User: ${req.session.UserId} accessing ${req.url}`);
         return next();
     } else {
+        console.warn(`[AUTH FAILURE] Unauthorized access attempt to ${req.url}. SessionID: ${req.sessionID}`);
         return res.status(401).json({ error: 'Unauthorized. Please Log In' });
     }
 }
