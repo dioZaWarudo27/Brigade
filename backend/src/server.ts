@@ -38,6 +38,9 @@ passport.deserializeUser(async (id: number, done) => {
     try {
         const result = await pool.query('SELECT * FROM users WHERE id = $1', [id]);
         done(null, result.rows[0]);
+        if(result.rows.length === 0){
+        return done(null, false);
+      }
     } catch (err) {
         done(err);
     }
@@ -58,9 +61,6 @@ passport.use(new GoogleStrategy({
         'SELECT * FROM users WHERE google_id = $1 OR email = $2',
         [googleId, email]
       );
-      if(user.rows.length === 0){
-        return done(null, false);
-      }
 
       if (user.rows.length > 0) {
         if (!user.rows[0].google_id) {
