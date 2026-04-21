@@ -21,7 +21,7 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
   const handleNext = () => setStep(step + 1);
   const handleBack = () => setStep(step - 1);
 
-  const handleSubmit = async(e: React.FormEvent) => {
+  const handleSubmit = async(e: React.SubmitEvent) => {
     e.preventDefault();
     const dataToSend = {
       username: formData.username,
