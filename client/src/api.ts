@@ -359,7 +359,7 @@ export const addFood = async(foodData: any) =>{
 //tdee of users
 // done
 export const addTdee = async(userData: any) =>{
-    const result = await fetch(`${BASE_URL}/tdee/`, {
+    const result = await fetch(`${BASE_URL}/tdee`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -373,7 +373,7 @@ export const addTdee = async(userData: any) =>{
 }
 // to update the user's current tdee/stats
 export const patchTdee = async(userData: any) =>{
-    const result = await fetch(`${BASE_URL}/tdee/`, {
+    const result = await fetch(`${BASE_URL}/tdee`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
