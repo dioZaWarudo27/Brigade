@@ -37,7 +37,7 @@ export default function App() {
       return;
     }
 
-    fetch(`${import.meta.env.VITE_BACKEND_URL}/api/me`, { credentials: 'include' })
+    fetch('/api/me', { credentials: 'include' })
       .then(res => res.json())
       .then(data => {
         if (data.isLoggedIn) {
