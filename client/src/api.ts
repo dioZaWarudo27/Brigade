@@ -1,4 +1,4 @@
-const BASE_URL = '';
+const BASE_URL = '/api';
 
 console.log("🌐 Running in Production Proxy Mode");
 //done
