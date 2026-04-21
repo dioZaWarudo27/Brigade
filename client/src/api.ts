@@ -359,7 +359,7 @@ export const addFood = async(foodData: any) =>{
 //tdee of users
 // done
 export const addTdee = async(userData: any) =>{
-    const result = await fetch(`${BASE_URL}/api/tdee/`, {
+    const result = await fetch(`${BASE_URL}/tdee/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
