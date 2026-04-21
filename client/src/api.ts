@@ -1,5 +1,4 @@
-// 🛡️ Senior Fix: Always use relative /api for Vercel Proxying
-const BASE_URL = '/api';
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
 console.log("🌐 Running in Production Proxy Mode");
 //done
