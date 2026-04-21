@@ -1,4 +1,4 @@
-const BASE_URL = '';
+const BASE_URL = import.meta.env.VITE_BACKEND_URL || '';
 
 console.log("🌐 Running in Production Proxy Mode");
 //done
