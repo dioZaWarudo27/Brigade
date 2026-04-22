@@ -398,18 +398,21 @@ const redisStore = new RedisStore({
     prefix: "session:", 
 });
 
-const sessionConfig: session.SessionOptions ={
-    secret: process.env.SESSION_SECRET || 'None',
+if (!process.env.SESSION_SECRET) {
+    throw new Error('SESSION_SECRET is not set. Server cannot start.');
+}
+
+const sessionConfig: session.SessionOptions = {
+    secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
     cookie: { 
         secure: true, 
         httpOnly: true, 
         sameSite: 'none', 
-        maxAge: 24 * 60 * 60 * 1000 // 1 Day
+        maxAge: 24 * 60 * 60 * 1000
     }
 }
-
 if (redisClient.isOpen && redisClient.isReady) {
     console.log("🟢 Redis detected: Using Redis for sessions.");
     sessionConfig.store = redisStore;
