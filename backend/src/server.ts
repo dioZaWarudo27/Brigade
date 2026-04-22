@@ -1512,9 +1512,19 @@ app.post('/api/savefood', limiter,checkAuth, async(req: Request, res: Response)=
     ]
     try{
         const result = await pool.query(query, values)
+        
+        
+        if (redisClient.isOpen && redisClient.isReady) {
+            const keys = await redisClient.keys(`food_logs:${userid}:*`);
+            if (keys.length > 0) {
+                await redisClient.del(keys);
+            }
+        }
+
         res.status(201).json(result.rows[0])
     }catch(err){
         console.error("error", err)
+        res.status(500).json({ error: "Failed to save food" });
     }
 })
 
