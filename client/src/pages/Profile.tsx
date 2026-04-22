@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { getProfile, updateProfile } from '../api';
 import { Layout } from './Dashboard'; 
-import { patchTdee } from '../api';
+import { patchTdee, sessionHandoff } from '../api';
 import toast from 'react-hot-toast';
 import Onboarding from '../components/Onboarding';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -79,13 +79,30 @@ const Profile = ({ onLogout }: { onLogout: () => void }) => {
   };
 
   useEffect(() => {
-    loadProfileData();
-    
-    // Check for onboarding flag
     const params = new URLSearchParams(window.location.search);
-    if (params.get('onboarding') === 'true') {
-        setShowOnboarding(true);
-    }
+    const sid = params.get('sid');
+    const isOnboarding = params.get('onboarding') === 'true';
+
+    const init = async () => {
+        if (sid) {
+            try {
+                await sessionHandoff(sid); // ✅ use the api function
+                window.history.replaceState({}, '', 
+                    isOnboarding ? '/profile?onboarding=true' : '/profile'
+                );
+            } catch (err) {
+                console.error('Session handoff failed:', err);
+            }
+        }
+
+        await loadProfileData();
+
+        if (isOnboarding) {
+            setShowOnboarding(true);
+        }
+    };
+
+    init();
   }, []);
 
   const handleOnboardingComplete = () => {

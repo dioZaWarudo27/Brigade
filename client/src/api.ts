@@ -18,6 +18,14 @@ export const getWorkouts = async() =>{
     return await result.json();
 }
 
+export const sessionHandoff = async (sid: string) => {
+    const result = await fetch(`/api/auth/session/handoff?sid=${sid}`, {
+        credentials: 'include'
+    });
+    if (!result.ok) throw new Error('Session handoff failed');
+    return result.json();
+}
+
 export const getFrequentWorkouts = async () => {
     const result = await fetch(`${BASE_URL}/workouts/frequent`, {
         method: 'GET',
