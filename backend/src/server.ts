@@ -531,9 +531,11 @@ app.get('/api/auth/google/callback',
         req.session.save((err) => {
             if (err) console.error("[SESSION SAVE ERROR]:", err);
             
+            // In production (Render/Vercel), we need to pass the sid for handoff due to cross-site cookie restrictions
+            const sessionParam = isProduction ? `&sid=${req.sessionID}` : '';
             const redirectUrl = user.isNewUser
-                ? `${process.env.FRONTEND_URL}/profile?onboarding=true&userId=${user.id}`
-                : `${process.env.FRONTEND_URL}/?userId=${user.id}`;
+                ? `${process.env.FRONTEND_URL}/profile?onboarding=true&userId=${user.id}${sessionParam}`
+                : `${process.env.FRONTEND_URL}/?userId=${user.id}${sessionParam}`;
 
             res.redirect(redirectUrl);
         });
