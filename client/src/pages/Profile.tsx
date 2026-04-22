@@ -98,7 +98,7 @@ const Profile = ({ onLogout }: { onLogout: () => void }) => {
         await loadProfileData();
 
         if (isOnboarding) {
-            setShowOnboarding(true);
+          setShowOnboarding(true);
         }
     };
 

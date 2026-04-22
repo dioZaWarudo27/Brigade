@@ -31,6 +31,12 @@ import {z} from 'zod'
 import connectPgSimple from 'connect-pg-simple';
 dotenv.config();
 
+
+if (!process.env.NODE_ENV) {
+    throw new Error('[CRITICAL] NODE_ENV is NOT set. The server will not start in an undefined state.');
+}
+const isProduction = process.env.NODE_ENV === 'production';
+
 passport.serializeUser((user: any, done) => {
     done(null, user.id);
 }); 
@@ -348,7 +354,7 @@ app.use((req, res, next) => {
     next();
 });
 
-const allowedOrigin = process.env.NODE_ENV === 'production' 
+const allowedOrigin = isProduction 
     ? process.env.FRONTEND_URL 
     : 'http://localhost:5173';
 
@@ -368,7 +374,7 @@ const io = new Server(httpServer, {
 
 app.set('io', io);
 
-if (process.env.NODE_ENV === 'production') {
+if (isProduction) {
     app.set('trust proxy', true);
 }
 
@@ -416,9 +422,9 @@ const sessionConfig: session.SessionOptions = {
         createTableIfMissing: true
     }),
     cookie: { 
-        secure: true, 
+        secure: isProduction, 
         httpOnly: true, 
-        sameSite: 'none', 
+        sameSite: isProduction ? 'none' : 'lax', 
         maxAge: 24 * 60 * 60 * 1000
     }
 }
@@ -526,8 +532,8 @@ app.get('/api/auth/google/callback',
             if (err) console.error("[SESSION SAVE ERROR]:", err);
             
             const redirectUrl = user.isNewUser
-                ? `${process.env.FRONTEND_URL}/profile?onboarding=true&sid=${req.sessionID}`
-                : `${process.env.FRONTEND_URL}/?sid=${req.sessionID}`;
+                ? `${process.env.FRONTEND_URL}/profile?onboarding=true&userId=${user.id}`
+                : `${process.env.FRONTEND_URL}/?userId=${user.id}`;
 
             res.redirect(redirectUrl);
         });

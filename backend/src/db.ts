@@ -3,6 +3,11 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
+if (!process.env.NODE_ENV) {
+    throw new Error('[CRITICAL] NODE_ENV is NOT set. Database connection aborted.');
+}
+const isProduction = process.env.NODE_ENV === 'production';
+
 if (process.env.DATABASE_URL) {
     console.log("🟢 Database: DATABASE_URL detected.");
 } else {
@@ -16,5 +21,5 @@ export const pool = new Pool({
     database: process.env.DATABASE_URL ? undefined : (process.env.DB_NAME || ''),
     password: process.env.DATABASE_URL ? undefined : (process.env.DB_PASSWORD || ''),
     port: process.env.DATABASE_URL ? undefined : parseInt(process.env.DB_PORT || ''),
-    ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+    ssl: isProduction ? { rejectUnauthorized: false } : false
 });
