@@ -28,11 +28,14 @@ import { loginSchema, registerSchema } from '../schemaszod/user_account_related.
 import passport from 'passport';
 import {Strategy as GoogleStrategy} from 'passport-google-oauth20'
 import {z} from 'zod'
+import connectPgSimple from 'connect-pg-simple';
 dotenv.config();
 
 passport.serializeUser((user: any, done) => {
     done(null, user.id);
 }); 
+
+const PgSession = connectPgSimple(session);
 
 passport.deserializeUser(async (id: number, done) => {
     try {
@@ -404,9 +407,14 @@ if (!process.env.SESSION_SECRET) {
 }
 
 const sessionConfig: session.SessionOptions = {
-    secret: process.env.SESSION_SECRET,
+    secret: process.env.SESSION_SECRET!,
     resave: false,
     saveUninitialized: false,
+    store: new PgSession({
+        pool,
+        tableName: 'user_sessions',
+        createTableIfMissing: true
+    }),
     cookie: { 
         secure: true, 
         httpOnly: true, 
