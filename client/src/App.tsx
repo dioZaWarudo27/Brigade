@@ -27,27 +27,38 @@ export default function App() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const userId = params.get('userId');
+    const sid = params.get('sid');
     const onboarding = params.get('onboarding');
 
-    if (userId) {
-      setIsLoggedIn(true);
-      if (onboarding === 'true') setIsOnboarding(true);
-      setLoading(false);
-      window.history.replaceState({}, '', window.location.pathname);
-      return;
-    }
-
-    fetch('/api/me', { credentials: 'include' })
-      .then(res => res.json())
-      .then(data => {
-        if (data.isLoggedIn) {
-          setIsLoggedIn(true);
-        } else {
-          setIsLoggedIn(false);
+    const initializeAuth = async () => {
+      try {
+        if (sid) {
+          // Cross-site handoff for production
+          const res = await fetch(`/api/auth/session/handoff?sid=${sid}`, { credentials: 'include' });
+          if (!res.ok) throw new Error('Handoff failed');
         }
-      })
-      .catch(() => setIsLoggedIn(false))
-      .finally(() => setLoading(false));
+
+        if (userId || sid) {
+          setIsLoggedIn(true);
+          if (onboarding === 'true') setIsOnboarding(true);
+          setLoading(false);
+          // Clean up URL
+          window.history.replaceState({}, '', window.location.pathname);
+          return;
+        }
+
+        const res = await fetch('/api/me', { credentials: 'include' });
+        const data = await res.json();
+        setIsLoggedIn(!!data.isLoggedIn);
+      } catch (err) {
+        console.error("Auth init error:", err);
+        setIsLoggedIn(false);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    initializeAuth();
   }, []);
 
   const handleLogin = () => {
