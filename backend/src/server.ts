@@ -418,7 +418,7 @@ const sessionConfig: session.SessionOptions = {
     cookie: { 
         secure: true, 
         httpOnly: true, 
-        sameSite: 'none', 
+        sameSite: 'lax', 
         maxAge: 24 * 60 * 60 * 1000
     }
 }
@@ -522,18 +522,37 @@ app.get('/api/auth/google/callback',
         req.session.UserId = user.id;
         req.session.isLoggedIn = true;
 
-        const redirectUrl = user.isNewUser
-            ? `${process.env.FRONTEND_URL}/profile?onboarding=true&userId=${user.id}`
-            : `${process.env.FRONTEND_URL}/?userId=${user.id}`;
-
-        console.log(`[GOOGLE AUTH] Redirecting User ${user.id} to: ${redirectUrl}`);
-
         req.session.save((err) => {
             if (err) console.error("[SESSION SAVE ERROR]:", err);
+            
+            const redirectUrl = user.isNewUser
+                ? `${process.env.FRONTEND_URL}/profile?onboarding=true&sid=${req.sessionID}`
+                : `${process.env.FRONTEND_URL}/?sid=${req.sessionID}`;
+
             res.redirect(redirectUrl);
         });
     }
 );
+app.get('/api/auth/session/handoff', (req, res) => {
+    const { sid } = req.query;
+
+    if (!sid) return res.status(400).json({ error: 'No session ID provided' });
+
+    // load the session from the store manually
+    req.sessionStore.get(sid as string, (err, sessionData) => {
+        if (err || !sessionData) {
+            return res.status(401).json({ error: 'Invalid or expired session' });
+        }
+
+        // migrate the session data into the current request session
+        req.session.UserId = sessionData.UserId;
+        req.session.isLoggedIn = sessionData.isLoggedIn;
+
+        req.session.save(() => {
+            res.json({ success: true }); // ✅ this response sets the cookie properly
+        });
+    });
+});
 
 app.post('/api/register', limiter, async (req: Request, res: Response) => {
     const parsed = registerSchema.safeParse(req.body);
