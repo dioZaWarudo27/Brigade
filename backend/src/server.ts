@@ -239,6 +239,8 @@ interface AuthRequestBody {
 }
 
 const checkAuth = (req: Request, res: Response, next: NextFunction) => {
+    console.log('[CHECK AUTH] Session data:', req.session); // ← add this temporarily
+    
     if (req.session && req.session.UserId) {
         console.log(`[AUTH SUCCESS] User: ${req.session.UserId} accessing ${req.url}`);
         return next();
@@ -247,7 +249,6 @@ const checkAuth = (req: Request, res: Response, next: NextFunction) => {
         return res.status(401).json({ error: 'Unauthorized. Please Log In' });
     }
 }
-
 // --- CALORIE HELPER FUNCTIONS ---
 
 function calculateTDEE(weight: number, height: number, age: number, gender: string, activity_level: string): number {
