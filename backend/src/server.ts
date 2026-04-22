@@ -375,7 +375,7 @@ const io = new Server(httpServer, {
 app.set('io', io);
 
 if (isProduction) {
-    app.set('trust proxy', true);
+    app.set('trust proxy', 1);
 }
 
 io.on('connection', (socket) => {
